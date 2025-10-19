@@ -7,21 +7,22 @@ const PORT = process.env.PORT || 10000;
 const TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
 
-// ✅ Homepage route (for "/")
+// Homepage
 app.get("/", (req, res) => {
   res.send(`
     <body style="background:#0d1117; color:white; font-family:sans-serif; text-align:center; margin-top:100px;">
       <h1>✅ Discord Reviews API is Live</h1>
-      <p>Go to <a href="/api/reviews" style="color:#58a6ff;">/api/reviews</a> to view messages.</p>
+      <p>View <a href="/api/reviews" style="color:#58a6ff;">Discord Reviews</a></p>
     </body>
   `);
 });
 
-// ✅ Discord reviews route (Discord-styled)
+// Reviews route
 app.get("/api/reviews", async (req, res) => {
   try {
+    // Fetch the latest messages from your reviews channel
     const response = await fetch(
-      `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages?limit=10`,
+      `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages?limit=25`, // Get up to 25 newest
       { headers: { Authorization: `Bot ${TOKEN}` } }
     );
 
@@ -31,49 +32,51 @@ app.get("/api/reviews", async (req, res) => {
       return res.status(500).send("Error fetching messages from Discord.");
     }
 
-    const html = messages
-      .map((m) => {
-        const avatar = m.author.avatar
-          ? `https://cdn.discordapp.com/avatars/${m.author.id}/${m.author.avatar}.png?size=64`
-          : "https://cdn.discordapp.com/embed/avatars/0.png"; // default avatar
+    // Sort newest → oldest (Discord API returns newest first)
+    const sortedMessages = messages.sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    );
 
-        return `
+    const html = sortedMessages
+      .map(
+        (m) => `
         <div style="
+          background:#2b2d31;
+          color:#fff;
+          padding:14px;
+          border-radius:12px;
+          margin:14px auto;
+          max-width:600px;
           display:flex;
           align-items:flex-start;
-          background:#2f3136;
-          color:#dcddde;
-          padding:12px;
-          border-radius:8px;
-          margin:10px 0;
-          font-family:'Whitney','Helvetica Neue',Helvetica,Arial,sans-serif;
-          box-shadow:0 2px 4px rgba(0,0,0,0.3);
+          gap:12px;
+          box-shadow:0 0 10px rgba(0,0,0,0.3);
+          font-family: 'Segoe UI', sans-serif;
         ">
-          <img src="${avatar}"
-               alt="${m.author.username}"
-               style="width:48px;height:48px;border-radius:50%;margin-right:12px;">
-          <div style="flex:1;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <strong style="color:#fff;font-size:15px;">${m.author.username}</strong>
-              <span style="color:#b9bbbe;font-size:12px;">${new Date(
-                m.timestamp
-              ).toLocaleString()}</span>
+          <img src="https://cdn.discordapp.com/avatars/${m.author.id}/${m.author.avatar}.png" 
+               alt="pfp" 
+               style="width:48px;height:48px;border-radius:50%;">
+          <div>
+            <div style="font-weight:600;font-size:15px;color:#e0e0e0;">
+              ${m.author.global_name || m.author.username}
+              <span style="color:#888;font-size:12px;">• ${new Date(m.timestamp).toLocaleString()}</span>
             </div>
-            <div style="margin-top:4px;color:#dcddde;font-size:15px;line-height:1.4;">
-              ${m.content || "<i>(no text message)</i>"}
+            <div style="margin-top:6px;font-size:14px;line-height:1.5;color:#ddd;">
+              ${m.content || ""}
             </div>
           </div>
-        </div>`;
-      })
+        </div>`
+      )
       .join("");
 
     res.setHeader("Content-Type", "text/html");
     res.send(`
-      <body style="background:#36393f;margin:0;padding:20px;">
-        <h2 style="color:#fff;font-family:Whitney,Helvetica,Arial,sans-serif;margin-bottom:20px;">
-          ⭐ Latest Discord Reviews
-        </h2>
+      <body style="background:#0d1117;margin:0;padding:20px;">
         ${html}
+        <script>
+          // 🔁 Auto-refresh every 60 seconds for newest reviews
+          setTimeout(() => location.reload(), 60000);
+        </script>
       </body>
     `);
   } catch (err) {

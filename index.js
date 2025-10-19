@@ -1,23 +1,3 @@
-import express from "express";
-import fetch from "node-fetch";
-
-const app = express();
-const PORT = process.env.PORT || 10000;
-
-const TOKEN = process.env.BOT_TOKEN;
-const CHANNEL_ID = process.env.CHANNEL_ID;
-
-// ✅ Homepage route (for "/")
-app.get("/", (req, res) => {
-  res.send(`
-    <body style="background:#0d1117; color:white; font-family:sans-serif; text-align:center; margin-top:100px;">
-      <h1>✅ Discord Reviews API is Live</h1>
-      <p>Go to <a href="/api/reviews" style="color:#58a6ff;">/api/reviews</a> to view messages.</p>
-    </body>
-  `);
-});
-
-// ✅ Discord reviews route
 app.get("/api/reviews", async (req, res) => {
   try {
     const response = await fetch(
@@ -32,18 +12,50 @@ app.get("/api/reviews", async (req, res) => {
     }
 
     const html = messages
-      .map(
-        (m) => `
-        <div style="background:#23272A;color:#fff;padding:10px;border-radius:10px;margin:10px;font-family:sans-serif;">
-          <strong>${m.author.username}</strong><br>
-          ${m.content}<br>
-          <small>${new Date(m.timestamp).toLocaleString()}</small>
-        </div>`
-      )
+      .map((m) => {
+        const avatar = m.author.avatar
+          ? `https://cdn.discordapp.com/avatars/${m.author.id}/${m.author.avatar}.png?size=64`
+          : "https://cdn.discordapp.com/embed/avatars/0.png"; // default avatar
+
+        return `
+        <div style="
+          display:flex;
+          align-items:flex-start;
+          background:#2f3136;
+          color:#dcddde;
+          padding:12px;
+          border-radius:8px;
+          margin:10px 0;
+          font-family:'Whitney','Helvetica Neue',Helvetica,Arial,sans-serif;
+          box-shadow:0 2px 4px rgba(0,0,0,0.3);
+        ">
+          <img src="${avatar}"
+               alt="${m.author.username}"
+               style="width:48px;height:48px;border-radius:50%;margin-right:12px;">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <strong style="color:#fff;font-size:15px;">${m.author.username}</strong>
+              <span style="color:#b9bbbe;font-size:12px;">${new Date(
+                m.timestamp
+              ).toLocaleString()}</span>
+            </div>
+            <div style="margin-top:4px;color:#dcddde;font-size:15px;line-height:1.4;">
+              ${m.content || "<i>(no text message)</i>"}
+            </div>
+          </div>
+        </div>`;
+      })
       .join("");
 
     res.setHeader("Content-Type", "text/html");
-    res.send(`<body style="background:#0d1117">${html}</body>`);
+    res.send(`
+      <body style="background:#36393f;margin:0;padding:20px;">
+        <h2 style="color:#fff;font-family:Whitney,Helvetica,Arial,sans-serif;margin-bottom:20px;">
+          ⭐ Latest Discord Reviews
+        </h2>
+        ${html}
+      </body>
+    `);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error fetching reviews.");

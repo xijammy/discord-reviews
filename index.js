@@ -1,3 +1,23 @@
+import express from "express";
+import fetch from "node-fetch";
+
+const app = express();
+const PORT = process.env.PORT || 10000;
+
+const TOKEN = process.env.BOT_TOKEN;
+const CHANNEL_ID = process.env.CHANNEL_ID;
+
+// ✅ Homepage route (for "/")
+app.get("/", (req, res) => {
+  res.send(`
+    <body style="background:#0d1117; color:white; font-family:sans-serif; text-align:center; margin-top:100px;">
+      <h1>✅ Discord Reviews API is Live</h1>
+      <p>Go to <a href="/api/reviews" style="color:#58a6ff;">/api/reviews</a> to view messages.</p>
+    </body>
+  `);
+});
+
+// ✅ Discord reviews route (Discord-styled)
 app.get("/api/reviews", async (req, res) => {
   try {
     const response = await fetch(

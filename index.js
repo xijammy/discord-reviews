@@ -20,9 +20,9 @@ app.get("/", (req, res) => {
 // Reviews route
 app.get("/api/reviews", async (req, res) => {
   try {
-    // Fetch the latest messages from your reviews channel
+    // Fetch the 25 most recent messages
     const response = await fetch(
-      `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages?limit=25`, // Get up to 25 newest
+      `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages?limit=25`,
       { headers: { Authorization: `Bot ${TOKEN}` } }
     );
 
@@ -32,12 +32,8 @@ app.get("/api/reviews", async (req, res) => {
       return res.status(500).send("Error fetching messages from Discord.");
     }
 
-    // Sort newest → oldest (Discord API returns newest first)
-    const sortedMessages = messages.sort(
-      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
-    );
-
-    const html = sortedMessages
+    // Discord API already gives newest → oldest, so no sort needed.
+    const html = messages
       .map(
         (m) => `
         <div style="
@@ -51,7 +47,7 @@ app.get("/api/reviews", async (req, res) => {
           align-items:flex-start;
           gap:12px;
           box-shadow:0 0 10px rgba(0,0,0,0.3);
-          font-family: 'Segoe UI', sans-serif;
+          font-family:'Segoe UI',sans-serif;
         ">
           <img src="https://cdn.discordapp.com/avatars/${m.author.id}/${m.author.avatar}.png" 
                alt="pfp" 
@@ -74,7 +70,7 @@ app.get("/api/reviews", async (req, res) => {
       <body style="background:#0d1117;margin:0;padding:20px;">
         ${html}
         <script>
-          // 🔁 Auto-refresh every 60 seconds for newest reviews
+          // 🔁 Optional: refresh every 60s for latest reviews
           setTimeout(() => location.reload(), 60000);
         </script>
       </body>

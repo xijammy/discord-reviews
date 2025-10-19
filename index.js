@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 10000;
 const TOKEN = process.env.BOT_TOKEN;
 const CHANNEL_ID = process.env.CHANNEL_ID;
 
-// Root route (homepage)
+// ✅ Homepage route (for "/")
 app.get("/", (req, res) => {
   res.send(`
     <body style="background:#0d1117; color:white; font-family:sans-serif; text-align:center; margin-top:100px;">
@@ -17,14 +17,12 @@ app.get("/", (req, res) => {
   `);
 });
 
-// API route to fetch Discord messages
+// ✅ Discord reviews route
 app.get("/api/reviews", async (req, res) => {
   try {
     const response = await fetch(
       `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages?limit=10`,
-      {
-        headers: { Authorization: `Bot ${TOKEN}` },
-      }
+      { headers: { Authorization: `Bot ${TOKEN}` } }
     );
 
     const messages = await response.json();
@@ -52,4 +50,4 @@ app.get("/api/reviews", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

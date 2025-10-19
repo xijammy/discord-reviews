@@ -1,4 +1,10 @@
-export default async function handler(req, res) {
+import express from "express";
+import fetch from "node-fetch";
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.get("/api/reviews", async (req, res) => {
   const TOKEN = process.env.BOT_TOKEN;
   const CHANNEL_ID = process.env.CHANNEL_ID;
 
@@ -6,9 +12,7 @@ export default async function handler(req, res) {
     const response = await fetch(
       `https://discord.com/api/v10/channels/${CHANNEL_ID}/messages?limit=10`,
       {
-        headers: {
-          Authorization: `Bot ${TOKEN}`,
-        },
+        headers: { Authorization: `Bot ${TOKEN}` },
       }
     );
 
@@ -35,4 +39,6 @@ export default async function handler(req, res) {
     console.error(err);
     res.status(500).send("Error fetching reviews");
   }
-}
+});
+
+app.listen(PORT, () => console.log(`✅ Server running on ${PORT}`));
